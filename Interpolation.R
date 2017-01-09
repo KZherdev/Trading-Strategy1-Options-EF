@@ -1,29 +1,76 @@
 #Linear interpolation
-VS_Liner_Interpolation <- function(date, Expiration, Strike) #expiration in form of integer number of days
-{
-  file_name = "_VS_Strikes.csv";
-  file_name = paste(date, file_name, sep = ""); #merge two strings, inverse format
-  df_cleanbldata = load(file_name);
 
+VSInterpolation <- function(df, x, expiration, method = "linear")
+{
+  vol = 0;
+  if(method == "linear")
+    vol = VS_Liner_Interpolation(df, x, expiration)
+
+  return(vol);
+}
+
+VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer number of days
+{
+ 
+  res = 0; 
   
-  #Assumption: Suppose, all strikes are determined correctly for every expiration
+  u_dates = unique(sort(df$Days_To_Expiry)) #unique dates
+  u_X = unique(sort(df$X)) #unique deltas
   
-  #Determine between which dates our expiration lies, column dates
+  #print(u_dates)
+  #print(u_X)
   
-  #step 1 - Create temporary file to store unique dates - sth like  df_cleanbldata[Expiration].unique(); sort it;
-  #step 2 - find two location indices for lower and upper bounds of our expiration date T
-  #step 3 - store these values - we will need them as coordinates to do linear interpolation
+  lower_date_index = findInterval(ndays, u_dates) #find index (start from 1) element in list; returns lower bounds 
+  upper_date_index = findInterval(ndays, u_dates) + 1
   
+  lower_date = u_dates[lower_date_index]
+  upper_date = u_dates[upper_date_index]
   
-  #Determine between which strikes our strike lies, for both lower date strikes and upper date strikes
-  #step 1 - Create temporary file to store unique strikes - sth like  df_cleanbldata[Strikes].unique(); sort it;
-  #step 2 - find two location indices for lower and upper bounds of our strike K
-  #step 3 - store these values
+  #print(lower_date)
+  #print(upper_date)
   
-  #as a result we have 2 border strikes and 2 border dates - 4 points in total. Take some average for volatilities
-  #sth like
-  v1 = df_cleanbldata[df_cleanbldata, where strike = strike1 and exp = exp1]
-  v = 0.5*(v1 + v2 + v3 + v4)
-  return v;
+  set_X_lower_date = df$X[df$Days_To_Expiry == lower_date]#set of X for lower date
+  set_X_upper_date = df$X[df$Days_To_Expiry == upper_date]#set of X for upper date
+  
+  #Determine lower and upper strikes for lower T
+  set_X_lower_date = sort(set_X_lower_date)
+  #print(set_X_lower_date)
+  
+  X_index_lower_down = findInterval(x, set_X_lower_date)
+  X_index_lower_up = findInterval(x, set_X_lower_date) + 1
+  
+  X_lower_down = set_X_lower_date[X_index_lower_down]
+  X_lower_up = set_X_lower_date[X_index_lower_up]
+  
+  #print(X_lower_down)
+  #print(X_lower_up)
+  
+  #Determine lower and upper strikes for higher T
+  set_X_upper_date = sort(set_X_upper_date)
+  #print(set_X_upper_date)
+  
+  X_index_upper_down = findInterval(x, set_X_upper_date)
+  X_index_upper_up = findInterval(x, set_X_upper_date) + 1
+  
+  X_upper_down = set_X_upper_date[X_index_upper_down]
+  X_upper_up = set_X_upper_date[X_index_upper_up]
+  
+  #print(X_upper_down)
+  #print(X_upper_up)
+  
+
+  vol_1 = df$ivol[df$Days_To_Expiry == lower_date & df$X == X_lower_down]
+  vol_2 = df$ivol[df$Days_To_Expiry == lower_date & df$X == X_lower_up]
+  vol_3 = df$ivol[df$Days_To_Expiry == upper_date & df$X == X_upper_down]
+  vol_4 = df$ivol[df$Days_To_Expiry == upper_date & df$X == X_upper_up]
+    
+  #print(vol_1)
+  #print(vol_2)
+  #print(vol_3)
+  #print(vol_4)
+  
+  res = 0.25*(vol_1 + vol_2 + vol_3 + vol_4)
+  #print(res)
+  return(res);
   
 }
