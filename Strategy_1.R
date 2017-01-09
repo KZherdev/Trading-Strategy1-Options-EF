@@ -1,5 +1,6 @@
 strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
 {
+  Target = 1.3650
   Nominal = 10000000 #100Евро
   rate_1 = 0.05
   rate_2 = 0.1
@@ -32,7 +33,7 @@ strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
   count  = 0
 
   print("Start trading!")
-  for(i in 1:10) #move along trading dates, then adjust hours; could have done the opposite
+  for(i in 1:length(trading_dates)) #move along trading dates, then adjust hours; could have done the opposite
   {
     print(paste("______________Trading day_______________ ", i, sep = "" ))
     print(paste("expiration = ", expiration, sep = ""))
@@ -69,7 +70,7 @@ strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
       fxspot = fx_spot_i$Spot[j]
       print(paste("fxspot = ", fxspot, sep = ""))
       
-      if(i >= 2 & (fx_spot_i$Spot[j] - Spot_0 >= 0.02 || i == 100))
+      if(i >= 2 & (abs(fx_spot_i$Spot[j] - Target) <= 0.005 || i == 100))
       {
         #close physical and derivative position; close in current price or j+1
         print(paste("Initial derivative price, long = ", PL_d, sep = ""))
