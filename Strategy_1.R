@@ -15,6 +15,7 @@ strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
   Strike_0 = Determine_Zero_Strike(date, path_BLData, delta_0, expiration, rates, fx_spot)
   c = Calculate_Option_Price_Delta(date, rates, fx_spot, delta_0, expiration)*Nominal
   
+  #for fun
   PL_d = -1*c
   PL_p = 0;
   X_out = 0;
