@@ -1,5 +1,5 @@
 library(plyr)
-library(RBloomberg)
+#library(RBloomberg)
 library(timeDate)
 
 path_Scripts = "C://Users//Konstantin//Desktop//On hand//Europe Finance//Version 7//"
@@ -42,6 +42,17 @@ CleanInterestRates(path_BLData)
 CleanFXSpot(path_BLData)
 CleanVSDelta(trading_dates, path_BLData, ticker)
 VolatilitySurfaceGridStrikes(trading_dates, path_BLData)
+
+
+#If to use git
+path_BLData = "C://Users//Konstantin//Desktop//On hand//Europe Finance//Data From BL//"
+
+source("CleanData.R")
+source("Interpolation.R")
+
+source("BlackScholesFormulas.R")
+source("Algorithm.R")
+source("Strategy_1.R")
 
 trade(trading_dates, path_BLData, strategy = "strategy_1")
 

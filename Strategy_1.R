@@ -143,8 +143,8 @@ strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
           
           #PL_p = PL_p + buy_sell_flow(spot_p, spot_c, s, int_u, int_d, N1, N2, X_out)
         }
-        X_out = X_out + Change_In_Physical_Position(spot_p, spot_c, s, int_u, int_d, N1, N2)
-        PL_p = PL_p + buy_sell_flow(spot_p, spot_c, s, int_u, int_d, N1, N2)
+        X_out = X_out + Change_In_Physical_Position(spot_p, spot_c, s, int_0, int_u, int_d, N1, N2)
+        PL_p = PL_p + buy_sell_flow(spot_p, spot_c, s, int_0, int_u, int_d, N1, N2)
         print(paste("total physical PL to now = ", PL_p, sep = ""))
         print(paste("total open position in Euro to now = ", X_out, sep = ""))
         
@@ -184,7 +184,7 @@ determine_interval <- function(Spot, s)
 }
 
 
-buy_sell_flow<- function(Spot_p, Spot_c, s, int_u, int_d, N1, N2)#CF from given stock movement
+buy_sell_flow<- function(Spot_p, Spot_c, s, int_0, int_u, int_d, N1, N2)#CF from given stock movement
 {
   omega_p = determine_interval(Spot_p, s)
   omega_c = determine_interval(Spot_c, s)
@@ -221,7 +221,7 @@ buy_sell_flow<- function(Spot_p, Spot_c, s, int_u, int_d, N1, N2)#CF from given 
   
 }
 
-Change_In_Physical_Position <- function(Spot_p, Spot_c, s, int_u, int_d, N1, N2)
+Change_In_Physical_Position <- function(Spot_p, Spot_c, s, int_0, int_u, int_d, N1, N2)
 {
   omega_p = determine_interval(Spot_p, s)
   omega_c = determine_interval(Spot_c, s)
@@ -252,8 +252,3 @@ Change_In_Physical_Position <- function(Spot_p, Spot_c, s, int_u, int_d, N1, N2)
     print(paste("X_out after new trade = ", change, sep = ""))
     return(change)
 }
-
-stopQuietly <- function(...) {
-  blankMsg <- sprintf("\r%s\r", paste(rep(" ", getOption("width")-1L), collapse=" "));
-  stop(simpleError(blankMsg));
-} # stopQuietly() 
