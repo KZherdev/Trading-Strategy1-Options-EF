@@ -31,6 +31,7 @@ strategy_1 <- function(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
   s_d = s[int_d + 1]
   count  = 0
 
+  #i in 1:len(trading_dates)
   print("Start trading!")
   for(i in 1:10) #move along trading dates, then adjust hours; could have done the opposite
   {
