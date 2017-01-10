@@ -1,8 +1,8 @@
 library(plyr)
-CleanInterestRates <- function(path_BLData)
+CleanInterestRates <- function(path_rates)
 {
-  file_name_f = paste(path_BLData, "EE0012M Index_historical.csv", sep = "")
-  file_name_d = paste(path_BLData, "US0012M Index_historical.csv", sep = "")
+  file_name_f = paste(path_rates, "EE0012M Index_historical.csv", sep = "")
+  file_name_d = paste(path_rates, "US0012M Index_historical.csv", sep = "")
   rates_f = read.csv(file_name_f, header = TRUE)
   rates_d = read.csv(file_name_d, header = TRUE)
   rates = merge(rates_d, rates_f, by.x = "date", by.y = "date")
@@ -11,39 +11,46 @@ CleanInterestRates <- function(path_BLData)
   rates$r_domestic = rates$r_domestic/100
   rates$r_foreign = rates$r_foreign/100
   
-  file_name = paste(path_BLData, "Interest_Rates_historical_cleaned.csv", sep = "")
+  file_name = paste(path_rates, "Interest_Rates_historical_cleaned.csv", sep = "")
   write.csv(rates, file_name, row.names=FALSE)
 }
 
 
-CleanFXSpot <- function(path_BLData)
+CleanFXSpot <- function(path_BLData, ticker, trading_period)
 {
-  file_name = paste(path_BLData, "EURUSD History_Sep_Oct.csv", sep = "")
+  file_name = paste(path_BLData, ticker, "historical ", trading_period[1], " to ", trading_period[length(trading_period)], ".csv", sep = "")
+  #print(file_name)
+  #file_name = paste(path_BLData, "EURUSD History_Sep_Oct.csv", sep = "")
   fxspot = read.csv(file_name, header = TRUE)
 
   fxspot$Day = as.Date(levels(fxspot$Day), format="%m/%d/%Y")[fxspot$Day] #Y should be capital, otherwise 2020
-  fxspot$Day_MTStock <- NULL
-  fxspot$X <- NULL
+  #fxspot$Day_MTStock <- NULL
+  #fxspot$X <- NULL
   fxspot$Open <- NULL
   fxspot$High <- NULL
   fxspot$Low <- NULL
-  colnames(fxspot) <- c("Hour", "Spot", "date")
+  #colnames(fxspot) <- c("Hour", "Spot", "date")
+  colnames(fxspot) <- c("date", "Hour", "Spot")
   fxspot$Period <- 1:nrow(fxspot)
   
-  file_name = paste(path_BLData, "EURUSD_history_Sep_Oct_cleaned.csv", sep = "")
+  #file_name = paste(path_BLData, "EURUSD_history_Sep_Oct_cleaned.csv", sep = "")
+  file_name = paste(path_BLData, ticker, "historical_", trading_period[1], " to ", trading_period[length(trading_period)], "_cleaned.csv", sep = "")
+  
   write.csv(fxspot, file_name, row.names=FALSE)
   
   
-  fx_spot_rd = fxspot[!duplicated(fxspot[,3]),] #http://stackoverflow.com/questions/6835753/how-to-remove-duplicated-rows-by-a-column-in-a-matrix-in-r
+  #fx_spot_rd = fxspot[!duplicated(fxspot[,3]),] #http://stackoverflow.com/questions/6835753/how-to-remove-duplicated-rows-by-a-column-in-a-matrix-in-r
+  fx_spot_rd = fxspot[!duplicated(fxspot$date),]
   fx_spot_rd$Hour <- NULL
   fx_spot_rd$Period <- NULL
   
-  file_name = paste(path_BLData, "Spot_history_cleaned_daily.csv", sep = "")
+  #file_name = paste(path_BLData, "Spot_history_cleaned_daily.csv", sep = "")
+  file_name = paste(path_BLData, ticker, "daily_", trading_period[1], " to ", trading_period[length(trading_period)], "_cleaned.csv", sep = "")
   write.csv(fx_spot_rd, file_name, row.names=FALSE)
     
 }
 
-
+#bloomberg gives data for weekends also; otw we would attempt to read weekend file and get an error
 CleanVSDelta <- function(trading_dates, path_BLData, ticker)
 {
   

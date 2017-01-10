@@ -34,6 +34,7 @@ VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer 
   
   #Determine lower and upper strikes for lower T
   set_X_lower_date = sort(set_X_lower_date)
+  
   #print(set_X_lower_date)
   
   X_index_lower_down = findInterval(x, set_X_lower_date)
@@ -41,6 +42,16 @@ VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer 
   
   X_lower_down = set_X_lower_date[X_index_lower_down]
   X_lower_up = set_X_lower_date[X_index_lower_up]
+  
+  if(is.na(X_lower_down) == TRUE)
+  {
+    X_lower_down = X_lower_up
+  }
+  
+  if(is.na(X_lower_up) == TRUE)
+  {
+    X_lower_up = X_lower_down
+  }
   
   #print(X_lower_down)
   #print(X_lower_up)
@@ -54,6 +65,16 @@ VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer 
   
   X_upper_down = set_X_upper_date[X_index_upper_down]
   X_upper_up = set_X_upper_date[X_index_upper_up]
+  
+  if(is.na(X_upper_down) == TRUE)
+  {
+    X_upper_down = X_upper_up
+  }
+  
+  if(is.na(X_upper_up) == TRUE)
+  {
+    X_upper_up = X_upper_down
+  }
   
   #print(X_upper_down)
   #print(X_upper_up)

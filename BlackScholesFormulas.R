@@ -94,6 +94,8 @@ Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates,
   fxspot = fx_spot$Spot[1] # take spot directly 
   fx_forward = fxspot*exp((rate_d-rate_f)*Expiration)
   
+  print(paste("rate_d = ", rate_d, sep = ""))
+  print(paste("rate_f = ", rate_f, sep = ""))
   #Determine strike for call option with delta_0 and calculated volatility
   strike_min <- uniroot(BlackScholes76CallDeltaMDelta, c(0, 4), tol = 0.0001, Forward = fx_forward, Vol = vol, Expiry = Expiration, delta = delta_0)
   Strike_0 = strike_min$root
@@ -143,12 +145,19 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   rate_d = rates$r_domestic[rates$date == date]
   rate_f = rates$r_foreign[rates$date == date]
   
+  print(paste("date: ", date, sep = ""))
+  print(paste("rate_d = ", rate_d, " rate_f = ", rate_f, sep = ""))
+  
   date_format = format(date, format = "%d.%m.%Y")
   file_name = paste(path_BLData, date_format, "_Strike_VS.csv", sep = "")
   
   VS_Strike = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Strike, Strike_0, expiration, method = "linear")
+  print(paste("vol = ", vol, sep = ""))
+  print(paste("Strike for open derivative = ", Strike_0, sep = ""))
+  
   Expiration = expiration/252
+  print(paste("Expiration = ", Expiration, sep = ""))
   
   c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
   #print(paste("Derivative current price: = ", c, sep = ""))

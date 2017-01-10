@@ -39,19 +39,22 @@ VS_Grid_Strikes_BS76_date <- function(VSDelta_date, fx_spot, rate_d, rate_f)
   return(VSDelta_date)
 }
 
-
-VolatilitySurfaceGridStrikes <- function(trading_dates, path_BLData)
+#bloomberg gives data for weekends also; otw we would attempt to read weekend file and get an error
+VolatilitySurfaceGridStrikes <- function(trading_dates, ticker, path_BLData, path_rates)
 {
   #Load data for rates and for fx_spot
   #rates
-  file_name = paste(path_BLData, "Interest_Rates_historical_cleaned.csv", sep = "")
+  file_name = paste(path_rates, "Interest_Rates_historical_cleaned.csv", sep = "")
   rates = read.csv(file_name, header = TRUE)
   rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date] #Y should be capital, otherwise 2020
   #View(rates)
   
   #spot; in this setup fsxpot comes from metastock; hourly format; many hours for given date - we need only one  
   #Вообще лучше в любом формате иметь входные цены; разумно из обработать в clean, сохранить в формате день - цена, а здесь этот файл открыть.
-  file_name = paste(path_BLData, "Spot_history_cleaned_daily.csv", sep = "")
+  
+  #file_name = paste(path_BLData, "Spot_history_cleaned_daily.csv", sep = "")
+  file_name = paste(path_BLData, ticker, "daily_", trading_period[1], " to ", trading_period[length(trading_period)], "_cleaned.csv", sep = "")
+  
   fx_spot_rd= read.csv(file_name, header = TRUE)
   fx_spot_rd$date = as.Date(levels(fx_spot_rd$date), format="%Y-%m-%d")[fx_spot_rd$date] #Y should be capital, otherwise 2020
 
