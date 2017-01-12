@@ -145,7 +145,9 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   rate_d = rates$r_domestic[rates$date == date]
   rate_f = rates$r_foreign[rates$date == date]
   
+  print("Calculate derivative price with the folowing parameters: ")
   print(paste("date: ", date, sep = ""))
+  print(paste("fxspot = ", fxspot, sep = ""))
   print(paste("rate_d = ", rate_d, " rate_f = ", rate_f, sep = ""))
   
   date_format = format(date, format = "%d.%m.%Y")
@@ -157,7 +159,7 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   print(paste("Strike for open derivative = ", Strike_0, sep = ""))
   
   Expiration = expiration/252
-  print(paste("Expiration = ", Expiration, sep = ""))
+  print(paste("Expiration in days = ", expiration, sep = ""))
   
   c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
   #print(paste("Derivative current price: = ", c, sep = ""))
@@ -165,4 +167,15 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   
 }
 
+Determine_Option_Vol_Strike<- function(date, Strike_0, expiration) #fx_spot - hourly data
+{
+
+  date_format = format(date, format = "%d.%m.%Y")
+  file_name = paste(path_BLData, date_format, "_Strike_VS.csv", sep = "")
+  
+  VS_Strike = read.csv(file_name, header = TRUE)
+  vol = VSInterpolation(VS_Strike, Strike_0, expiration, method = "linear")
+  return(vol)
+  
+}
 

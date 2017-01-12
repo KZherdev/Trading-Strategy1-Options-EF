@@ -7,6 +7,8 @@ trade <- function(ticker, trading_dates, trading_period, path_BLData, path_rates
   rates = read.csv(file_name, header = TRUE)
   rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date] #remove levels before passing as argument, otw error
   
+  #add rates if not exist
+
   #file_name = paste(path_BLData, "EURUSD_history_Sep_Oct_cleaned.csv", sep = "")
   file_name = paste(path_BLData, ticker, "historical_", trading_period[1], " to ", trading_period[length(trading_period)], "_cleaned.csv", sep = "")
   fx_spot = read.csv(file_name, header = TRUE)
@@ -20,7 +22,7 @@ trade <- function(ticker, trading_dates, trading_period, path_BLData, path_rates
   
 ###This part doesn't depend on chosen strategy (end)
   if(strategy ==  "strategy_1")
-      res = strategy_1(trading_dates, rates, fx_spot, PL_d, PL_p, X_out)
+      res = strategy_1(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p, X_out)
   return(res)
 }
 

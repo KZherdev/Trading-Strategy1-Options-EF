@@ -25,7 +25,9 @@ VS_Grid_Strikes_BS76_date <- function(VSDelta_date, fx_spot, rate_d, rate_f)
   
   for (i in 1:nrow(VSDelta_date))
   {
+    #print(i)
     vol = VSDelta_date$ivol[i]
+    #print(vol)
     delta = VSDelta_date$X[i]
     Expiration = VSDelta_date$Days_To_Expiry[i]/365
     fx_forward = fx_spot*exp((rate_d-rate_f)*Expiration)
@@ -49,6 +51,21 @@ VolatilitySurfaceGridStrikes <- function(trading_dates, ticker, path_BLData, pat
   rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date] #Y should be capital, otherwise 2020
   #View(rates)
   
+  for(i in 1:length(trading_dates))
+  {
+    date = trading_dates[i]
+    if(is.na(match(date, rates$date)))
+    {
+      print("_______________TRUE________________")
+      #construct new temporary data frame and merge with existing
+      rates_temp <- data.frame(date = double(), r_domestic = double(), r_foreign  = double())
+      rates_temp<- rbind(rates_temp, data.frame(date = date, r_domestic = 0.007, r_foreign  = 0.004))
+      rates <- rbind(rates, rates_temp)
+      
+    }
+  }
+  write.csv(rates, file_name, row.names=FALSE)
+  
   #spot; in this setup fsxpot comes from metastock; hourly format; many hours for given date - we need only one  
   #Вообще лучше в любом формате иметь входные цены; разумно из обработать в clean, сохранить в формате день - цена, а здесь этот файл открыть.
   
@@ -65,13 +82,21 @@ VolatilitySurfaceGridStrikes <- function(trading_dates, ticker, path_BLData, pat
     file_name = paste(path_BLData, date_format, "_Delta_VS_cleaned.csv", sep = "")
     
     print(date)
-    
+    #print("ok_0")
     fx_spot = fx_spot_rd$Spot[fx_spot_rd$date == date]
+    #print("ok_1")
+    
     rate_d = rates$r_domestic[rates$date == date]
     rate_f = rates$r_foreign[rates$date == date]    
-    VSDelta_date = read.csv(file_name, header = TRUE)
+    #print("ok_2")
+    #print(rate_d)
+    #print(rate_f)
+    #print(fx_spot)
     
+    VSDelta_date = read.csv(file_name, header = TRUE)
+    #View(VSDelta_date)
     df_strike = VS_Grid_Strikes_BS76_date(VSDelta_date, fx_spot, rate_d, rate_f)
+    #print("ok_3")
     
     drops <- c("X", "DeltaCheck")
     df_strike = df_strike[, !(names(df_strike) %in% drops)]

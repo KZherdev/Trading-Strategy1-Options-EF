@@ -36,23 +36,42 @@ VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer 
   set_X_lower_date = sort(set_X_lower_date)
   
   #print(set_X_lower_date)
+  #print(x)
+  #print(set_X_lower_date[1])
   
   X_index_lower_down = findInterval(x, set_X_lower_date)
   X_index_lower_up = findInterval(x, set_X_lower_date) + 1
   
+  #print(X_index_lower_down)
+  #print(X_index_lower_up)
+  
+  if(X_index_lower_down == 0 & X_index_lower_up == 1)
+  {
+    X_index_lower_down = 1
+  }
+  
+  if(X_index_lower_down == length(set_X_lower_date) & X_index_lower_up == length(set_X_lower_date) + 1)
+  {
+    #print("here!")
+    X_index_lower_up = length(set_X_lower_date)
+  }
+  
   X_lower_down = set_X_lower_date[X_index_lower_down]
   X_lower_up = set_X_lower_date[X_index_lower_up]
   
-  if(is.na(X_lower_down) == TRUE)
-  {
-    X_lower_down = X_lower_up
-  }
+  #print(X_lower_down)
+  #print(X_lower_up)
   
-  if(is.na(X_lower_up) == TRUE)
-  {
-    X_lower_up = X_lower_down
-  }
-  
+  # if(is.na(X_lower_down) == TRUE)
+  # {
+  #   X_lower_down = X_lower_up
+  # }
+  # 
+  # if(is.na(X_lower_up) == TRUE)
+  # {
+  #   X_lower_up = X_lower_down
+  # }
+  # 
   #print(X_lower_down)
   #print(X_lower_up)
   
@@ -63,18 +82,28 @@ VS_Liner_Interpolation <- function(df, x, ndays) #expiration in form of integer 
   X_index_upper_down = findInterval(x, set_X_upper_date)
   X_index_upper_up = findInterval(x, set_X_upper_date) + 1
   
+  if(X_index_upper_down == 0 & X_index_upper_up == 1)
+  {
+    X_index_upper_down = 1
+  }
+  
+  if(X_index_upper_down == length(set_X_upper_date) & X_index_upper_up == length(set_X_upper_date) + 1)
+  {
+    X_index_upper_up = length(set_X_upper_date)
+  }
+  
   X_upper_down = set_X_upper_date[X_index_upper_down]
   X_upper_up = set_X_upper_date[X_index_upper_up]
   
-  if(is.na(X_upper_down) == TRUE)
-  {
-    X_upper_down = X_upper_up
-  }
-  
-  if(is.na(X_upper_up) == TRUE)
-  {
-    X_upper_up = X_upper_down
-  }
+  # if(is.na(X_upper_down) == TRUE)
+  # {
+  #   X_upper_down = X_upper_up
+  # }
+  # 
+  # if(is.na(X_upper_up) == TRUE)
+  # {
+  #   X_upper_up = X_upper_down
+  # }
   
   #print(X_upper_down)
   #print(X_upper_up)
