@@ -65,7 +65,7 @@ VolatilitySurfaceGridStrikes(trading_dates, ticker, path_BLData, path_rates)#tra
 
 #trade(ticker, trading_dates, trading_period, path_BLData, path_rates, strategy = "strategy_1")
 
-# c = BlackScholes76CallPrice(1.3641, 1.3316, 0.073, 0.0065, 0.0045, 1.0/252.0)*10000000
-# c
-# date = as.Date("2013/10/03", format="%Y/%m/%d")
-# date
+c = BlackScholes76CallPrice(1.2779, 1.2909, 0.084, 0.0075, 0.0042, 30.0/365.0)*10000000
+c
+date = as.Date("2013/10/03", format="%Y/%m/%d")
+date

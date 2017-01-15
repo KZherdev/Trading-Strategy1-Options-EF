@@ -4,10 +4,10 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
   #Target = 1.365
   
   #Period  54
-  Target = 1.32
+  #Target = 1.32
   
   #Period  53 ok
-  #Target = 1.345
+  Target = 1.345
   
   #Period  52  ok
   #Target = 1.35
@@ -30,7 +30,7 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
   #print(date)
   Strike_0 = Determine_Zero_Strike(date, path_BLData, delta_0, expiration, rates, fx_spot)
   vol_0 = Determine_Option_Vol_Strike(date, Strike_0, expiration)
-  
+  Strike_initial = Strike_0
   c = Calculate_Option_Price_Delta(date, rates, fx_spot, delta_0, expiration)*Nominal
   
   PL_d = -1*c
@@ -61,7 +61,6 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
   print("Start trading!")
   
   #if starting date in periods is holiday, then we exclude this day
-  
   #for saturday
   if(is.na(match(trading_period[1], trading_dates)))
   {
@@ -85,6 +84,8 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
     count = count + 1
     
     
+    #if given trading period day is working day - then trade; 
+    #we should walk through trading_period days, since it is easier to control for expiration in this case
     date_period = trading_period[i]
     if(!is.na(match(date_period, trading_dates)))
     {
@@ -110,7 +111,7 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
 
     }
     #if( count%% 14 == 0)
-    if( count%% 14 == 0 & (fx_spot_i$Spot[1] - Spot_0 <= 0))
+    if( count%% 14 == 0 & (fx_spot_i$Spot[1] - Spot_0 <= 0))#for call option, if spot increases, then call also increases in value and we don't want to roll the option after 2 weeks
     {
       #if(fx_spot_i$Spot[1] - Spot_0 <= 0)
       #{
@@ -143,41 +144,46 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
       fxspot = fx_spot_i$Spot[j]
       print(paste("fxspot = ", fxspot, sep = ""))
       
+      #condition when we exit trade; Why do we need i >= 2 here?
       if(i >= 2 & (abs(fx_spot_i$Spot[j] - Target) <= 0.001 || (i == length(trading_period) & j == nrow(fx_spot_i) ) ) )
       {
 
         if(i >= 2 & (abs(fx_spot_i$Spot[j] - Target) <= 0.001))
         {
           print("______________Trading terminated after the spot triggered upper barier________________")
-          print("                                                                                      ")
+          #print("                                                                                      ")
         }
         
         if(i == length(trading_period))
         {
           print("______________Trading terminated due to the end of the sample period________________")
-          print("                                                                                    ")
+          #print("                                                                                    ")
         }
-        
-        #close physical and derivative position; close in current price or j+1
         print(paste("Trading terminated at ", date, "; Trading periods are ", trading_period[1], " - ", trading_period[length(trading_period)], sep = "" ))
-        print(paste("Derivative price at the beginning of trading = ", initial_price,  sep = ""))
-        print(paste("initial spot = ", Spot_0, sep = ""))
-        print(paste("initial vol = ", vol_0, sep = ""))
-        print("    ")
-        c_cur = Calculate_Option_Price_Strike(date, rates, fx_spot, j, Strike_0, expiration)*Nominal #calc price fir given optin
-        print(paste("Derivative current price: = ", c_cur, sep = ""))
-        print(paste("PL on derivative before closing position = ", PL_d, sep = ""))
         
-        
-        
-        print("                                             ")
         print("______________Rolling Results________________")
         #print("                                             ")
         print(paste("number_of_rolling_times = ", number_of_rolling_times, sep = ""))
         print(paste("Close price at rolling = ", c_close_if_rolling_took_place, sep = ""))
         print(paste("Open price at rolling = ", c_open_if_rolling_took_place, sep = ""))
         print(paste("Derivative PL after rolling = ", PL_d_after_rolling, sep = ""))
+        print("       ")
         
+        #close physical and derivative position; close in current price or j+1
+        print(paste("initial spot = ", Spot_0, sep = ""))
+        print(paste("initial vol = ", vol_0, sep = ""))
+        print(paste("initial strike = ", Strike_initial, sep = ""))
+        print(paste("Derivative price at the beginning of trading = ", initial_price,  sep = ""))
+        
+        #print("    ")
+        c_cur = Calculate_Option_Price_Strike(date, rates, fx_spot, j, Strike_0, expiration)*Nominal #calc price fir given optin
+        print(paste("Derivative current price: = ", c_cur, sep = ""))
+        print(paste("PL on derivative before closing position = ", PL_d, sep = ""))
+        
+        
+        
+        #print("                                             ")
+
         print(paste("______________ TRADING RESULTS FOR GIVEN PERIOD: from ", trading_period[1], " to ", trading_period[length(trading_period)], "________________", sep = ""))
         print("                                                                       ")
         

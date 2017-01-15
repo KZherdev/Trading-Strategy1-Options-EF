@@ -26,7 +26,8 @@ BlackScholes76CallPrice <-function(fxspot, Strike, Vol, r_d, r_f, Expiry)
   #moneyness
   d1 = (moneyness + 0.5* standardDeviation*standardDeviation) / standardDeviation;
   d2 = d1 - standardDeviation;
-  return(fxspot*exp(-r_f*Expiry) * pnorm(d1, 0, 1) - Strike*exp(-r_d*Expiry)*pnorm(d2, 0, 1))
+  #return(fxspot*exp(-r_f*Expiry) * pnorm(d1, 0, 1) - Strike*exp(-r_d*Expiry)*pnorm(d2, 0, 1))
+  return(exp(-r_d*Expiry)*(Forward*pnorm(d1, 0, 1) - Strike*pnorm(d2, 0, 1)))
 }
 
 BlackScholes76PutPrice <-function(Forward, Strike, Vol, Expiry)
@@ -88,7 +89,7 @@ Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates,
   vol = VSInterpolation(VS_Delta, delta_0, expiration, method = "linear")
   #print(vol)
   
-  Expiration = expiration/252
+  Expiration = expiration/365
   rate_d = rates$r_domestic[rates$date == start_str.date]
   rate_f = rates$r_foreign[rates$date == start_str.date]
   fxspot = fx_spot$Spot[1] # take spot directly 
@@ -115,7 +116,7 @@ Calculate_Option_Price_Delta<- function(date, rates, fx_spot, delta_0, expiratio
   fxspot = fx_spot_temp$Spot[1] #the first hourly price
   rate_d = rates$r_domestic[rates$date == date]
   rate_f = rates$r_foreign[rates$date == date]
-  Expiration = expiration/252
+  Expiration = expiration/365
   fx_forward = fxspot*exp((rate_d-rate_f)*Expiration) #for illustration
   
   print(paste("date: ", date, sep = ""))
@@ -129,7 +130,7 @@ Calculate_Option_Price_Delta<- function(date, rates, fx_spot, delta_0, expiratio
   
   VS_Delta = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Delta, delta_0, expiration, method = "linear")
-  Expiration = expiration/252
+  Expiration = expiration/365
   
   c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
   return(c)
@@ -158,7 +159,7 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   print(paste("vol = ", vol, sep = ""))
   print(paste("Strike for open derivative = ", Strike_0, sep = ""))
   
-  Expiration = expiration/252
+  Expiration = expiration/365
   print(paste("Expiration in days = ", expiration, sep = ""))
   
   c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
