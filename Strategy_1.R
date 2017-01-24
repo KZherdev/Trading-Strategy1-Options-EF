@@ -1,20 +1,7 @@
-strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p, X_out)
+source("Intervals_utility.R")
+
+strategy_1 <- function(path_strategy_folder, trading_dates, trading_period, rates, fx_spot, PL_d, PL_p, X_out, Target)
 {
-  #Period  55 ok
-  #Target = 1.365
-  
-  #Period  54
-  #Target = 1.32
-  
-  #Period  53 ok
-  Target = 1.345
-  
-  #Period  52  ok
-  #Target = 1.35
-  
-  #Period  51 ok
-  #Target = 1.330
-  
   Nominal = 10000000 #100Åâğî
   rate_1 = 0.05
   rate_2 = 0.1
@@ -27,11 +14,10 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
   
   #Initialize PL in derivative and physical position, initialize Strike_0
   date = trading_dates[1]
-  #print(date)
-  Strike_0 = Determine_Zero_Strike(date, path_BLData, delta_0, expiration, rates, fx_spot)
-  vol_0 = Determine_Option_Vol_Strike(date, Strike_0, expiration)
+  Strike_0 = Determine_Zero_Strike(date, path_strategy_folder, delta_0, expiration, rates, fx_spot)
+  vol_0 = Determine_Option_Vol_Strike(path_strategy_folder, date, Strike_0, expiration)
   Strike_initial = Strike_0
-  c = Calculate_Option_Price_Delta(date, rates, fx_spot, delta_0, expiration)*Nominal
+  c = Calculate_Option_Price_Delta(path_strategy_folder, date, rates, fx_spot, delta_0, expiration)*Nominal
   
   PL_d = -1*c
   initial_price = c
@@ -40,7 +26,9 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
   X_out = 0;
   
   #create intervals and determine some triggers when we enter trade 
-  Spot_0  = fx_spot$Spot[1]
+  fx_spot_temp_temp = fx_spot[fx_spot$date == trading_dates[1], ]
+  Spot_0 = fx_spot_temp_temp$Spot[1]
+  
   print(paste("spot at beginning = ", Spot_0, sep = ""))
   s = create_intervals(Spot_0, 0.005, 3)
   print(s)
@@ -116,13 +104,12 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
       #if(fx_spot_i$Spot[1] - Spot_0 <= 0)
       #{
       #expiration updated at the end
-      c_2w = Calculate_Option_Price_Strike(date, rates, fx_spot, 1, Strike_0, expiration)*Nominal #fx_spot - hourly data
+      c_2w = Calculate_Option_Price_Strike(path_strategy_folder, date, rates, fx_spot, 1, Strike_0, expiration)*Nominal #fx_spot - hourly data
       c_close_if_rolling_took_place = c_2w
       
       #buy new - update strike_0 for the second rolling
-      Strike_0 = Determine_Zero_Strike(date, path_BLData, delta_0, expiration = 30, rates, fx_spot)
-      c_4w = Calculate_Option_Price_Strike(date, rates, fx_spot, 1, Strike_0, expiration = 30)*Nominal
-      
+      Strike_0 = Determine_Zero_Strike(date, path_strategy_folder, delta_0, expiration = 30, rates, fx_spot)
+      c_4w = Calculate_Option_Price_Strike(path_strategy_folder, date, rates, fx_spot, 1, Strike_0, expiration = 30)*Nominal
       c_open_if_rolling_took_place = c_4w
       
       expiration = 30
@@ -176,7 +163,9 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
         print(paste("Derivative price at the beginning of trading = ", initial_price,  sep = ""))
         
         #print("    ")
-        c_cur = Calculate_Option_Price_Strike(date, rates, fx_spot, j, Strike_0, expiration)*Nominal #calc price fir given optin
+        #fxspot = fx_spot_i$Spot[1] 
+        #close option the LAST DAY PRICE if exit without trigger and on current price, if triggered
+        c_cur = Calculate_Option_Price_Strike_spot(path_strategy_folder, date, rates, fxspot, Strike_0, expiration)*Nominal #calc price fir given optin
         print(paste("Derivative current price: = ", c_cur, sep = ""))
         print(paste("PL on derivative before closing position = ", PL_d, sep = ""))
         
@@ -266,25 +255,25 @@ strategy_1 <- function(trading_dates, trading_period, rates, fx_spot, PL_d, PL_p
 }
 
 
-#creates a list with interval bounds
-create_intervals <- function(Spot_0, step, n_one_way)
-{
-  l = Spot_0 - n_one_way*step
-  u = Spot_0 + n_one_way*step
-  s = seq(l,u,step)
-  remove <- c(Spot_0)
-  s = s[! s %in% remove] #http://stackoverflow.com/questions/9665984/how-to-delete-multiple-values-from-a-vector
-  #print(s)
-  return(s)
-  
-}
-
-#determine interval number for given spot value
-determine_interval <- function(Spot, s)
-{
-  x = findInterval(Spot,s) #returns index of those element, that is lower bound
-  return(x)
-}
+# #creates a list with interval bounds
+# create_intervals <- function(Spot_0, step, n_one_way)
+# {
+#   l = Spot_0 - n_one_way*step
+#   u = Spot_0 + n_one_way*step
+#   s = seq(l,u,step)
+#   remove <- c(Spot_0)
+#   s = s[! s %in% remove] #http://stackoverflow.com/questions/9665984/how-to-delete-multiple-values-from-a-vector
+#   #print(s)
+#   return(s)
+#   
+# }
+# 
+# #determine interval number for given spot value
+# determine_interval <- function(Spot, s)
+# {
+#   x = findInterval(Spot,s) #returns index of those element, that is lower bound
+#   return(x)
+# }
 
 
 buy_sell_flow<- function(Spot_p, Spot_c, s, int_0, int_u, int_d, N1, N2)#CF from given stock movement

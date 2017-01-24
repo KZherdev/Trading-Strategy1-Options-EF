@@ -76,7 +76,7 @@ BlackScholes76CallPercDelta <-function(Strike, Forward, Vol, Expiry)
 
 
 #for given date, option initial delta_0, expiration and market parameters determine strike for the given option
-Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates, fx_spot)
+Determine_Zero_Strike <- function(date, path_strategy_folder, delta_0, expiration, rates, fx_spot)
 {
   #rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date]
   #fx_spot$date = as.Date(levels(fx_spot$date), format="%Y-%m-%d")[fx_spot$date] #Y should be capital, otherwise 2020
@@ -84,7 +84,7 @@ Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates,
   start_str.date = date
   start_str.date_format = format(start_str.date, format = "%d.%m.%Y")
   
-  file_name = paste(path_BLData, start_str.date_format, "_Delta_VS_cleaned.csv", sep = "")
+  file_name = paste(path_strategy_folder, start_str.date_format, "_Delta_VS_cleaned.csv", sep = "")
   VS_Delta = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Delta, delta_0, expiration, method = "linear")
   #print(vol)
@@ -92,7 +92,10 @@ Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates,
   Expiration = expiration/365
   rate_d = rates$r_domestic[rates$date == start_str.date]
   rate_f = rates$r_foreign[rates$date == start_str.date]
-  fxspot = fx_spot$Spot[1] # take spot directly 
+  #fxspot = fx_spot$Spot[1] # take spot directly 
+  fx_spot_temp = fx_spot[fx_spot$date == date, ]
+  fxspot = fx_spot_temp$Spot[1]
+  
   fx_forward = fxspot*exp((rate_d-rate_f)*Expiration)
   
   print(paste("rate_d = ", rate_d, sep = ""))
@@ -104,16 +107,12 @@ Determine_Zero_Strike <- function(date, path_BLData, delta_0, expiration, rates,
   return(Strike_0)
 }
 
-Calculate_Option_Price_Delta<- function(date, rates, fx_spot, delta_0, expiration) #fx_spot - hourly data
+Calculate_Option_Price_Delta<- function(path_strategy_folder, date, rates, fx_spot, delta_0, expiration) #fx_spot - hourly data
 {
-  print("ok")
-  #View(rates)
-  #print(rates$date[2])
-  #rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date]
-  #fx_spot$date = as.Date(levels(fx_spot$date), format="%Y-%m-%d")[fx_spot$date] #Y should be capital, otherwise 2020
-  
+
   fx_spot_temp = fx_spot[fx_spot$date == date, ] #subset for given date in hours
   fxspot = fx_spot_temp$Spot[1] #the first hourly price
+  
   rate_d = rates$r_domestic[rates$date == date]
   rate_f = rates$r_foreign[rates$date == date]
   Expiration = expiration/365
@@ -122,11 +121,11 @@ Calculate_Option_Price_Delta<- function(date, rates, fx_spot, delta_0, expiratio
   print(paste("date: ", date, sep = ""))
   print(paste("rate_d = ", rate_d, " rate_f = ", rate_f, sep = ""))
   print(paste("fx_forward = ", fx_forward, sep = ""))
-  Strike_0 <- Determine_Zero_Strike(date, path_BLData, delta_0, expiration, rates, fx_spot)#might be levels in rates
+  Strike_0 <- Determine_Zero_Strike(date, path_strategy_folder, delta_0, expiration, rates, fx_spot)#might be levels in rates
   
   
   date_format = format(date, format = "%d.%m.%Y")
-  file_name = paste(path_BLData, date_format, "_Delta_VS_cleaned.csv", sep = "")
+  file_name = paste(path_strategy_folder, date_format, "_Delta_VS_cleaned.csv", sep = "")
   
   VS_Delta = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Delta, delta_0, expiration, method = "linear")
@@ -136,7 +135,8 @@ Calculate_Option_Price_Delta<- function(date, rates, fx_spot, delta_0, expiratio
   return(c)
 }
 
-Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expiration) #fx_spot - hourly data
+#we calculate price in the beginning, when we roll - do it in first hour of given day; when we close in arbitrary hour - inconvenient
+Calculate_Option_Price_Strike<- function(path_strategy_folder, date, rates, fx_spot, k, Strike_0, expiration) #fx_spot - hourly data
 {
   #rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date]
   #fx_spot$date = as.Date(levels(fx_spot$date), format="%Y-%m-%d")[fx_spot$date] #Y should be capital, otherwise 2020
@@ -152,7 +152,7 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   print(paste("rate_d = ", rate_d, " rate_f = ", rate_f, sep = ""))
   
   date_format = format(date, format = "%d.%m.%Y")
-  file_name = paste(path_BLData, date_format, "_Strike_VS.csv", sep = "")
+  file_name = paste(path_strategy_folder, date_format, "_Strike_VS.csv", sep = "")
   
   VS_Strike = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Strike, Strike_0, expiration, method = "linear")
@@ -163,16 +163,45 @@ Calculate_Option_Price_Strike<- function(date, rates, fx_spot, k, Strike_0, expi
   print(paste("Expiration in days = ", expiration, sep = ""))
   
   c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
-  #print(paste("Derivative current price: = ", c, sep = ""))
+  print(paste("Derivative current price: = ", c, sep = ""))
   return(c)
-  
 }
 
-Determine_Option_Vol_Strike<- function(date, Strike_0, expiration) #fx_spot - hourly data
+#the same as above, but is useful when we iterate through hours and then close in some arbit hour
+Calculate_Option_Price_Strike_spot<- function(path_strategy_folder, date, rates, fxspot, Strike_0, expiration) #fx_spot - hourly data
+{
+  #rates$date = as.Date(levels(rates$date), format="%Y-%m-%d")[rates$date]
+  #fx_spot$date = as.Date(levels(fx_spot$date), format="%Y-%m-%d")[fx_spot$date] #Y should be capital, otherwise 2020
+  
+  rate_d = rates$r_domestic[rates$date == date]
+  rate_f = rates$r_foreign[rates$date == date]
+  
+  # print("Calculate derivative price with the folowing parameters: ")
+  # print(paste("date: ", date, sep = ""))
+  # print(paste("fxspot = ", fxspot, sep = ""))
+  # print(paste("rate_d = ", rate_d, " rate_f = ", rate_f, sep = ""))
+  # 
+  date_format = format(date, format = "%d.%m.%Y")
+  file_name = paste(path_strategy_folder, date_format, "_Strike_VS.csv", sep = "")
+  
+  VS_Strike = read.csv(file_name, header = TRUE)
+  vol = VSInterpolation(VS_Strike, Strike_0, expiration, method = "linear")
+  #print(paste("vol = ", vol, sep = ""))
+  #print(paste("Strike for open derivative = ", Strike_0, sep = ""))
+  
+  Expiration = expiration/365
+  #print(paste("Expiration in days = ", expiration, sep = ""))
+  
+  c = BlackScholes76CallPrice(fxspot, Strike_0, vol, rate_d, rate_f, Expiration);
+  #print(paste("Derivative current price: = ", c, sep = ""))
+  return(c)
+}
+
+Determine_Option_Vol_Strike<- function(path_strategy_folder, date, Strike_0, expiration) #fx_spot - hourly data
 {
 
   date_format = format(date, format = "%d.%m.%Y")
-  file_name = paste(path_BLData, date_format, "_Strike_VS.csv", sep = "")
+  file_name = paste(path_strategy_folder, date_format, "_Strike_VS.csv", sep = "")
   
   VS_Strike = read.csv(file_name, header = TRUE)
   vol = VSInterpolation(VS_Strike, Strike_0, expiration, method = "linear")
